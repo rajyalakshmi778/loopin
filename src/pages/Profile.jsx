@@ -1,12 +1,41 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase/firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 
 function Profile() {
+  const navigate = useNavigate();
+
   const [name, setName] = useState("");
   const [bio, setBio] = useState("");
   const [skills, setSkills] = useState("");
   const [college, setCollege] = useState("");
+
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  const loadProfile = async () => {
+    try {
+      const user = auth.currentUser;
+
+      if (!user) return;
+
+      const docRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+
+        setName(data.name || "");
+        setBio(data.bio || "");
+        setSkills(data.skills || "");
+        setCollege(data.college || "");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const saveProfile = async () => {
     try {
@@ -26,7 +55,7 @@ function Profile() {
         uid: user.uid,
       });
 
-      alert("Profile saved successfully!");
+      navigate("/");
     } catch (error) {
       alert(error.message);
     }
@@ -51,6 +80,7 @@ function Profile() {
         value={bio}
         onChange={(e) => setBio(e.target.value)}
         className="w-full p-3 border rounded-xl mb-4"
+        rows="4"
       />
 
       <input
@@ -66,12 +96,20 @@ function Profile() {
         placeholder="College"
         value={college}
         onChange={(e) => setCollege(e.target.value)}
-        className="w-full p-3 border rounded-xl mb-4"
+        className="w-full p-3 border rounded-xl mb-6"
       />
 
       <button
         onClick={saveProfile}
-        className="bg-blue-600 text-white px-6 py-3 rounded-xl"
+        className="
+          bg-blue-600
+          hover:bg-blue-700
+          text-white
+          px-6
+          py-3
+          rounded-xl
+          transition
+        "
       >
         Save Profile
       </button>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { db, auth } from "../firebase/firebase";
 import { collection, addDoc } from "firebase/firestore";
 
@@ -7,6 +8,8 @@ function CreateProject() {
   const [description, setDescription] = useState("");
   const [skills, setSkills] = useState("");
   const [category, setCategory] = useState("");
+
+  const navigate = useNavigate();
 
   const handleCreate = async () => {
     try {
@@ -18,15 +21,16 @@ function CreateProject() {
       }
 
       await addDoc(collection(db, "projects"), {
-        title,
-        description,
-        skills,
-        category,
-        createdBy: user.uid,
-        createdAt: new Date(),
-      });
-
-      alert("Project created successfully!");
+  title,
+  description,
+  skills,
+  category,
+  createdBy: user.uid,
+  ownerEmail: user.email,
+  members: [user.email],
+  createdAt: new Date(),
+});
+      navigate("/discover");
 
       setTitle("");
       setDescription("");
@@ -76,7 +80,7 @@ function CreateProject() {
 
       <button
         onClick={handleCreate}
-        className="bg-blue-600 text-white px-6 py-3 rounded-xl"
+        className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition"
       >
         Create Project
       </button>

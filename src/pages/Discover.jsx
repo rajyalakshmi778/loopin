@@ -3,6 +3,7 @@ import Navbar from "../components/Navbar";
 import ProjectCard from "../components/ProjectCard";
 import { db } from "../firebase/firebase";
 import { collection, getDocs } from "firebase/firestore";
+import { FiSearch } from "react-icons/fi";
 
 function Discover() {
   const [projects, setProjects] = useState([]);
@@ -46,72 +47,120 @@ function Discover() {
     <>
       <Navbar />
 
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <h1 className="text-4xl font-bold mb-3">
-          Discover Projects
-        </h1>
+      <div className="bg-gradient-to-b from-blue-50 to-white min-h-screen">
+        <div className="max-w-7xl mx-auto px-6 py-12">
 
-        <p className="text-slate-500 mb-8">
-          Find exciting projects and connect with builders.
-        </p>
+          {/* Header */}
+          <div className="mb-12">
+            <h1 className="text-6xl font-extrabold text-slate-900 mb-4">
+              Discover Projects
+            </h1>
 
-        <input
-          type="text"
-          placeholder="🔍 Search projects..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="
-            w-full
-            md:w-96
-            p-3
-            border
-            border-slate-300
-            rounded-xl
-            mb-8
-          "
-        />
+            <p className="text-xl text-slate-600 max-w-2xl">
+              Find exciting projects, connect with talented builders,
+              and grow your network.
+            </p>
+          </div>
 
-        <div className="flex gap-3 mb-8 flex-wrap">
-          <button
-            onClick={() => setSelectedCategory("All")}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg"
-          >
-            All
-          </button>
+          {/* Active Projects Banner */}
+          <div className="bg-white rounded-3xl shadow-md p-8 mb-8">
+            <h2 className="text-3xl font-bold">
+              {projects.length} Active Projects
+            </h2>
 
-          <button
-            onClick={() => setSelectedCategory("AI")}
-            className="border px-4 py-2 rounded-lg"
-          >
-            AI
-          </button>
+            <p className="text-slate-500 mt-2">
+              Discover startup ideas, hackathons and collaborative projects.
+            </p>
+          </div>
 
-          <button
-            onClick={() => setSelectedCategory("Web")}
-            className="border px-4 py-2 rounded-lg"
-          >
-            Web
-          </button>
+          {/* Search & Filters */}
+          <div className="bg-white rounded-3xl shadow-md p-6 mb-10">
 
-          <button
-            onClick={() => setSelectedCategory("Startup")}
-            className="border px-4 py-2 rounded-lg"
-          >
-            Startup
-          </button>
-        </div>
+            <div className="relative mb-6">
+              <FiSearch
+                className="
+                  absolute
+                  left-4
+                  top-1/2
+                  -translate-y-1/2
+                  text-gray-400
+                  text-lg
+                "
+              />
 
-        <p className="mb-4 font-semibold">
-          Selected Category: {selectedCategory}
-        </p>
+              <input
+                type="text"
+                placeholder="Search projects..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="
+                  w-full
+                  p-4
+                  pl-12
+                  border
+                  border-slate-300
+                  rounded-2xl
+                  focus:outline-none
+                  focus:ring-2
+                  focus:ring-blue-500
+                "
+              />
+            </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
-          {filteredProjects.map((project) => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-            />
-          ))}
+            <div className="flex flex-wrap gap-3">
+              {["All", "AI", "Web", "Startup"].map(
+                (category) => (
+                  <button
+                    key={category}
+                    onClick={() =>
+                      setSelectedCategory(category)
+                    }
+                    className={`px-5 py-2 rounded-xl transition ${
+                      selectedCategory === category
+                        ? "bg-blue-600 text-white"
+                        : "bg-slate-100 hover:bg-slate-200"
+                    }`}
+                  >
+                    {category}
+                  </button>
+                )
+              )}
+            </div>
+          </div>
+
+          {/* Projects Count */}
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-2xl font-bold">
+              Available Projects
+            </h2>
+
+            <span className="text-slate-500">
+              {filteredProjects.length} Projects Found
+            </span>
+          </div>
+
+          {/* Projects Grid */}
+          {filteredProjects.length === 0 ? (
+            <div className="bg-white rounded-3xl shadow-md p-12 text-center">
+              <h3 className="text-2xl font-bold mb-3">
+                No Projects Found
+              </h3>
+
+              <p className="text-slate-500">
+                Try changing your search or category.
+              </p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredProjects.map((project) => (
+                <ProjectCard
+                  key={project.id}
+                  project={project}
+                />
+              ))}
+            </div>
+          )}
+
         </div>
       </div>
     </>

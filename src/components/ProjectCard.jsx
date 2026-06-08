@@ -6,63 +6,83 @@ function ProjectCard({ project }) {
       <div
         className="
           bg-white
+          rounded-3xl
           border
           border-slate-200
-          rounded-2xl
           p-6
-          shadow-sm
-          hover:shadow-xl
-          hover:-translate-y-1
-          transition
+          shadow-md
+          hover:shadow-2xl
+          hover:-translate-y-2
+          transition-all
           duration-300
-          cursor-pointer
+          h-[340px]
+          flex
+          flex-col
+          justify-between
         "
       >
-        <h3 className="text-xl font-bold mb-2">
-          {project.title}
-        </h3>
+        {/* Header */}
+        <div>
+          <div className="flex items-start justify-between mb-4">
+            <h3 className="text-2xl font-bold text-slate-900">
+              {project.title}
+            </h3>
 
-        <p className="text-gray-600 mb-3">
-          {project.description}
-        </p>
+            <span
+              className="
+                bg-gradient-to-r
+                from-blue-500
+                to-indigo-600
+                text-white
+                px-4
+                py-2
+                rounded-full
+                text-xs
+                font-semibold
+                shadow-sm
+              "
+            >
+              {project.category}
+            </span>
+          </div>
 
-        <span
-          className="
-            inline-block
-            bg-blue-100
-            text-blue-700
-            px-3
-            py-1
-            rounded-lg
-            text-sm
-            mb-3
-          "
-        >
-          {project.category}
-        </span>
+          <p className="text-gray-600 mb-5 line-clamp-3">
+            {project.description}
+          </p>
 
-        <p className="text-sm text-gray-500">
-          Skills Required:
-        </p>
+          <div className="mb-5">
+            <p className="text-sm font-semibold text-slate-600 mb-2">
+              🛠 Skills
+            </p>
 
-        <p className="text-blue-600 font-medium">
-          {project.skills}
-        </p>
+            <p className="text-blue-600 font-medium">
+              {project.skills}
+            </p>
+          </div>
+        </div>
 
-        <button
-          className="
-            mt-4
-            bg-blue-600
-            text-white
-            px-4
-            py-2
-            rounded-lg
-            hover:bg-blue-700
-            transition
-          "
-        >
-          View Project
-        </button>
+        {/* Footer */}
+        <div className="flex items-center justify-between border-t pt-4">
+          <div>
+            <p className="font-semibold text-slate-700">
+              👥 {project.members?.length || 1} Members
+            </p>
+          </div>
+
+          <button
+            className="
+              bg-blue-600
+              hover:bg-blue-700
+              text-white
+              px-5
+              py-2
+              rounded-xl
+              transition
+            "
+          >
+            View Project
+          </button>
+        </div>
       </div>
     </Link>
   );

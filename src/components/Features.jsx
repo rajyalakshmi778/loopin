@@ -1,45 +1,73 @@
 function Features() {
+  const features = [
+    {
+      title: "Find Teammates",
+      description:
+        "Connect with developers, designers, analysts and founders who share your vision.",
+      icon: "👥",
+    },
+    {
+      title: "Launch Projects",
+      description:
+        "Create projects, define skills needed and attract talented collaborators.",
+      icon: "🚀",
+    },
+    {
+      title: "Build Together",
+      description:
+        "Manage team members, requests and collaboration from one platform.",
+      icon: "🤝",
+    },
+  ];
+
   return (
-    <section className="max-w-7xl mx-auto px-6 py-16">
+    <section className="py-24 bg-white">
+      <div className="max-w-7xl mx-auto px-6">
 
-      <h2 className="text-4xl font-bold text-center mb-12">
-        Why Loopin?
-      </h2>
+        <div className="text-center mb-16">
+          <h2 className="text-5xl font-extrabold text-slate-900 mb-4">
+            Why Choose Loopin?
+          </h2>
 
-      <div className="grid md:grid-cols-3 gap-8">
-
-        <div className="p-6 border rounded-xl">
-          <h3 className="text-xl font-semibold mb-3">
-            Find Teammates
-          </h3>
-
-          <p className="text-gray-500">
-            Connect with talented builders.
+          <p className="text-xl text-slate-500 max-w-2xl mx-auto">
+            Everything you need to build teams, launch projects,
+            and turn ideas into reality.
           </p>
         </div>
 
-        <div className="p-6 border rounded-xl">
-          <h3 className="text-xl font-semibold mb-3">
-            Share Ideas
-          </h3>
+        <div className="grid md:grid-cols-3 gap-8">
+          {features.map((feature) => (
+            <div
+              key={feature.title}
+              className="
+                bg-white
+                border
+                border-slate-200
+                rounded-3xl
+                p-8
+                shadow-md
+                hover:shadow-xl
+                hover:-translate-y-2
+                transition-all
+                duration-300
+              "
+            >
+              <div className="text-5xl mb-6">
+                {feature.icon}
+              </div>
 
-          <p className="text-gray-500">
-            Showcase your project vision.
-          </p>
-        </div>
+              <h3 className="text-2xl font-bold mb-4">
+                {feature.title}
+              </h3>
 
-        <div className="p-6 border rounded-xl">
-          <h3 className="text-xl font-semibold mb-3">
-            Build Together
-          </h3>
-
-          <p className="text-gray-500">
-            Turn ideas into reality as a team.
-          </p>
+              <p className="text-slate-600 leading-relaxed">
+                {feature.description}
+              </p>
+            </div>
+          ))}
         </div>
 
       </div>
-
     </section>
   );
 }
