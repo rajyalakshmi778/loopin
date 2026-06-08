@@ -9,7 +9,9 @@ import CreateProject from "./pages/CreateProject";
 import MyRequests from "./pages/MyRequests";
 import ProjectRequests from "./pages/ProjectRequests";
 import EditProject from "./pages/EditProject";
-
+import Dashboard from "./pages/Dashboard";
+import MyProjects from "./pages/MyProjects";
+import Notifications from "./pages/Notifications";
 function App() {
   return (
     <BrowserRouter>
@@ -27,7 +29,10 @@ function App() {
           path="/create-project"
           element={<CreateProject />}
         />
-
+<Route
+  path="/notifications"
+  element={<Notifications />}
+/>
         <Route
           path="/my-requests"
           element={<MyRequests />}
@@ -42,6 +47,11 @@ function App() {
           path="/edit-project/:id"
           element={<EditProject />}
         />
+        <Route
+  path="/dashboard"
+  element={<Dashboard />}
+/>
+<Route path="/my-projects" element={<MyProjects />} />
       </Routes>
     </BrowserRouter>
   );

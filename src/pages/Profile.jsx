@@ -1,15 +1,16 @@
+
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase/firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 
 function Profile() {
-  const navigate = useNavigate();
-
   const [name, setName] = useState("");
   const [bio, setBio] = useState("");
   const [skills, setSkills] = useState("");
   const [college, setCollege] = useState("");
+
+  const [profileExists, setProfileExists] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -31,6 +32,8 @@ function Profile() {
         setBio(data.bio || "");
         setSkills(data.skills || "");
         setCollege(data.college || "");
+
+        setProfileExists(true);
       }
     } catch (error) {
       console.log(error);
@@ -55,16 +58,67 @@ function Profile() {
         uid: user.uid,
       });
 
-      navigate("/");
+      setProfileExists(true);
+      setEditing(false);
+
+      alert("Profile updated successfully");
     } catch (error) {
       alert(error.message);
     }
   };
 
+  // PROFILE VIEW
+  if (profileExists && !editing) {
+    return (
+      <div className="max-w-2xl mx-auto p-8">
+        <div className="bg-white rounded-2xl shadow-lg p-8">
+
+          <h1 className="text-3xl font-bold mb-6">
+            My Profile
+          </h1>
+
+          <div className="space-y-4">
+
+            <div>
+              <p className="text-gray-500">Name</p>
+              <p className="font-semibold">{name}</p>
+            </div>
+
+            <div>
+              <p className="text-gray-500">Bio</p>
+              <p>{bio}</p>
+            </div>
+
+            <div>
+              <p className="text-gray-500">Skills</p>
+              <p>{skills}</p>
+            </div>
+
+            <div>
+              <p className="text-gray-500">College</p>
+              <p>{college}</p>
+            </div>
+
+          </div>
+
+          <button
+            onClick={() => setEditing(true)}
+            className="mt-6 bg-blue-600 text-white px-6 py-3 rounded-xl"
+          >
+            Edit Profile
+          </button>
+
+        </div>
+      </div>
+    );
+  }
+
+  // EDIT / CREATE FORM
   return (
     <div className="max-w-xl mx-auto p-8">
+
       <h1 className="text-3xl font-bold mb-6">
-        Complete Profile
+        {profileExists ? "Edit Profile" : "Complete Profile"}
       </h1>
 
       <input
@@ -101,18 +155,11 @@ function Profile() {
 
       <button
         onClick={saveProfile}
-        className="
-          bg-blue-600
-          hover:bg-blue-700
-          text-white
-          px-6
-          py-3
-          rounded-xl
-          transition
-        "
+        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl"
       >
         Save Profile
       </button>
+
     </div>
   );
 }

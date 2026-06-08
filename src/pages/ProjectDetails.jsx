@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
@@ -18,8 +19,6 @@ function ProjectDetails() {
 
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  const user = auth.currentUser;
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -43,6 +42,9 @@ function ProjectDetails() {
     fetchProject();
   }, [id]);
 
+  // =========================
+  // JOIN REQUEST
+  // =========================
   const handleJoinProject = async () => {
     try {
       const user = auth.currentUser;
@@ -52,43 +54,155 @@ function ProjectDetails() {
         return;
       }
 
-      const q = query(
-        collection(db, "joinRequests"),
-        where("projectId", "==", project.id),
-        where("requesterId", "==", user.uid)
-      );
-
-      const querySnapshot = await getDocs(q);
-
-      if (!querySnapshot.empty) {
-        alert("You have already requested to join this project");
+      // Owner cannot join own project
+      if (project.createdBy === user.uid) {
+        alert("You are the project owner");
         return;
       }
 
-      await addDoc(collection(db, "joinRequests"), {
-        projectId: project.id,
-        projectTitle: project.title,
-        requesterId: user.uid,
-        requesterEmail: user.email,
-        projectOwnerEmail: project.ownerEmail,
-        status: "pending",
-        createdAt: new Date(),
-      });
+      // Already a member
+      if (project.members?.includes(user.email)) {
+        alert("You are already a member");
+        return;
+      }
 
-      alert("Join request sent!");
+      const q = query(
+        collection(db, "requests"),
+        where("projectId", "==", project.id),
+        where("senderId", "==", user.uid),
+        where("type", "==", "join"),
+        where("status", "==", "pending")
+      );
+
+      const snapshot = await getDocs(q);
+
+      if (!snapshot.empty) {
+        alert("Join request already sent");
+        return;
+      }
+
+      await addDoc(collection(db, "requests"), {
+  projectId: project.id,
+  projectTitle: project.title,
+  senderId: user.uid,
+  senderEmail: user.email,
+  ownerId: project.createdBy,
+  type: "join",
+  status: "pending",
+  createdAt: new Date(),
+});
+
+await addDoc(collection(db, "notifications"), {
+  userId: project.createdBy,
+  title: "New Join Request",
+  message: `${user.email} wants to join ${project.title}`,
+  type: "join_request",
+  projectId: project.id,
+  senderId: user.uid,
+  senderEmail: user.email,
+  read: false,
+  createdAt: new Date(),
+});
+
+alert("Join request sent!");
     } catch (error) {
       console.log(error);
       alert("Failed to send request");
     }
   };
 
-  if (loading) {
-    return <h1>Loading...</h1>;
-  }
+  // =========================
+  // LEAVE REQUEST
+  // =========================
+  const handleLeaveRequest = async () => {
+  try {
+    const user = auth.currentUser;
 
-  if (!project) {
-    return <h1>Project Not Found</h1>;
+    if (!user) return;
+
+    if (project.createdBy === user.uid) {
+      alert("Project owner cannot leave");
+      return;
+    }
+
+    const q = query(
+      collection(db, "requests"),
+      where("projectId", "==", project.id),
+      where("senderId", "==", user.uid),
+      where("type", "==", "leave"),
+      where("status", "==", "pending")
+    );
+
+    const snapshot = await getDocs(q);
+
+    if (!snapshot.empty) {
+      alert("Leave request already sent");
+      return;
+    }
+
+    await addDoc(collection(db, "requests"), {
+      projectId: project.id,
+      projectTitle: project.title,
+      senderId: user.uid,
+      senderEmail: user.email,
+      ownerId: project.createdBy,
+      type: "leave",
+      status: "pending",
+      createdAt: new Date(),
+    });
+
+    await addDoc(collection(db, "notifications"), {
+      userId: project.createdBy,
+      title: "Leave Request",
+      message: `${user.email} wants to leave ${project.title}`,
+      type: "leave_request",
+      projectId: project.id,
+      senderId: user.uid,
+      senderEmail: user.email,
+      read: false,
+      createdAt: new Date(),
+    });
+
+    alert("Leave request sent!");
+  } catch (error) {
+    console.log(error);
+    alert("Failed to send leave request");
   }
+};
+
+  if (loading) {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <h1 className="text-2xl font-bold">
+        Loading Project...
+      </h1>
+    </div>
+  );
+}
+
+if (!project) {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center">
+      <h1 className="text-3xl font-bold mb-4">
+        Project Not Found
+      </h1>
+
+      <button
+        onClick={() => navigate("/discover")}
+        className="bg-blue-600 text-white px-6 py-3 rounded-xl"
+      >
+        Back to Discover
+      </button>
+    </div>
+  );
+}
+  const user = auth.currentUser;
+
+  const isOwner =
+    user?.uid === project.createdBy;
+
+  const isMember =
+    project.members?.includes(user?.email);
 
   return (
     <>
@@ -109,13 +223,46 @@ function ProjectDetails() {
           </span>
         </div>
 
-        <p className="mb-4">
-          Skills Required: {project.skills}
-        </p>
+        <div className="bg-white border rounded-2xl p-6 shadow-sm mb-6">
 
-        <p className="mb-6 font-semibold">
-          Members: {project.members?.length || 0}
-        </p>
+  <div className="mb-4">
+    <p className="text-gray-500 text-sm">
+      Skills Required
+    </p>
+
+    <p className="font-semibold text-lg">
+      {project.skills}
+    </p>
+  </div>
+
+  <div className="mb-4">
+    <p className="text-gray-500 text-sm">
+      Team Size
+    </p>
+
+    <p className="font-semibold text-lg">
+      {project.members?.length || 0} Members
+    </p>
+  </div>
+
+  {project.githubUrl && (
+    <div>
+      <p className="text-gray-500 text-sm mb-1">
+        GitHub Repository
+      </p>
+
+      <a
+        href={project.githubUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 font-semibold hover:underline"
+      >
+        Open Repository →
+      </a>
+    </div>
+  )}
+
+</div>
 
         <h2 className="text-2xl font-bold mt-8 mb-4">
           Team Members
@@ -132,7 +279,8 @@ function ProjectDetails() {
           ))}
         </div>
 
-        {user?.email === project.ownerEmail && (
+        {/* OWNER ACTIONS */}
+        {isOwner && (
           <button
             onClick={() =>
               navigate(`/edit-project/${project.id}`)
@@ -143,12 +291,26 @@ function ProjectDetails() {
           </button>
         )}
 
-        <button
-          onClick={handleJoinProject}
-          className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition"
-        >
-          Join Project
-        </button>
+        {/* MEMBER ACTIONS */}
+        {!isOwner && (
+          <>
+            {!isMember ? (
+              <button
+                onClick={handleJoinProject}
+                className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition"
+              >
+                Join Project
+              </button>
+            ) : (
+              <button
+                onClick={handleLeaveRequest}
+                className="bg-red-600 text-white px-6 py-3 rounded-xl hover:bg-red-700 transition"
+              >
+                Request Leave
+              </button>
+            )}
+          </>
+        )}
       </div>
     </>
   );

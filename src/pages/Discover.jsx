@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import ProjectCard from "../components/ProjectCard";
-import { db } from "../firebase/firebase";
+import { db, auth } from "../firebase/firebase";
 import { collection, getDocs } from "firebase/firestore";
 import { FiSearch } from "react-icons/fi";
 
@@ -31,6 +31,8 @@ function Discover() {
     fetchProjects();
   }, []);
 
+  const user = auth.currentUser;
+
   const filteredProjects = projects.filter((project) => {
     const matchesSearch = project.title
       ?.toLowerCase()
@@ -40,7 +42,18 @@ function Discover() {
       selectedCategory === "All" ||
       project.category === selectedCategory;
 
-    return matchesSearch && matchesCategory;
+    const notMyProject =
+      project.createdBy !== user?.uid;
+
+    const notJoined =
+      !project.members?.includes(user?.email);
+
+    return (
+      matchesSearch &&
+      matchesCategory &&
+      notMyProject &&
+      notJoined
+    );
   });
 
   return (
@@ -62,14 +75,15 @@ function Discover() {
             </p>
           </div>
 
-          {/* Active Projects Banner */}
+          {/* Projects Banner */}
           <div className="bg-white rounded-3xl shadow-md p-8 mb-8">
             <h2 className="text-3xl font-bold">
-              {projects.length} Active Projects
+              {filteredProjects.length} Projects Available
             </h2>
 
             <p className="text-slate-500 mt-2">
-              Discover startup ideas, hackathons and collaborative projects.
+              Explore projects you have not joined yet and discover
+              new opportunities.
             </p>
           </div>
 
@@ -128,10 +142,10 @@ function Discover() {
             </div>
           </div>
 
-          {/* Projects Count */}
+          {/* Section Title */}
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-bold">
-              Available Projects
+              🌎 Explore New Projects
             </h2>
 
             <span className="text-slate-500">
@@ -147,7 +161,8 @@ function Discover() {
               </h3>
 
               <p className="text-slate-500">
-                Try changing your search or category.
+                You already own or joined all available projects,
+                or try changing your search/category.
               </p>
             </div>
           ) : (

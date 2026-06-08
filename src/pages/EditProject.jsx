@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { db } from "../firebase/firebase";
+import { db, auth } from "../firebase/firebase";
 import {
   doc,
   getDoc,
@@ -20,24 +20,42 @@ function EditProject() {
   useEffect(() => {
     const fetchProject = async () => {
       try {
+        const user = auth.currentUser;
+
+        if (!user) {
+          navigate("/login");
+          return;
+        }
+
         const docRef = doc(db, "projects", id);
         const docSnap = await getDoc(docRef);
 
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-
-          setTitle(data.title || "");
-          setDescription(data.description || "");
-          setSkills(data.skills || "");
-          setCategory(data.category || "");
+        if (!docSnap.exists()) {
+          navigate("/");
+          return;
         }
+
+        const data = docSnap.data();
+
+        // Only owner can edit
+        if (data.createdBy !== user.uid) {
+          alert("Unauthorized access");
+          navigate("/");
+          return;
+        }
+
+        setTitle(data.title || "");
+        setDescription(data.description || "");
+        setSkills(data.skills || "");
+        setCategory(data.category || "");
       } catch (error) {
         console.log(error);
+        navigate("/");
       }
     };
 
     fetchProject();
-  }, [id]);
+  }, [id, navigate]);
 
   const handleUpdate = async () => {
     try {
@@ -51,7 +69,6 @@ function EditProject() {
       });
 
       alert("Project updated successfully!");
-
       navigate(`/project/${id}`);
     } catch (error) {
       console.log(error);
@@ -102,7 +119,7 @@ function EditProject() {
 
         <button
           onClick={handleUpdate}
-          className="bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700"
+          className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl"
         >
           Save Changes
         </button>

@@ -15,16 +15,24 @@ function ProjectCard({ project }) {
           hover:-translate-y-2
           transition-all
           duration-300
-          h-[340px]
+          min-h-[360px]
           flex
           flex-col
           justify-between
         "
       >
-        {/* Header */}
         <div>
-          <div className="flex items-start justify-between mb-4">
-            <h3 className="text-2xl font-bold text-slate-900">
+          <div className="flex items-start justify-between gap-3 mb-4">
+
+            <h3
+              className="
+                text-xl
+                font-bold
+                text-slate-900
+                line-clamp-2
+                break-words
+              "
+            >
               {project.title}
             </h3>
 
@@ -34,54 +42,64 @@ function ProjectCard({ project }) {
                 from-blue-500
                 to-indigo-600
                 text-white
-                px-4
-                py-2
+                px-3
+                py-1
                 rounded-full
                 text-xs
                 font-semibold
-                shadow-sm
+                shrink-0
               "
             >
               {project.category}
             </span>
+
           </div>
 
-          <p className="text-gray-600 mb-5 line-clamp-3">
+          <p
+            className="
+              text-gray-600
+              mb-5
+              line-clamp-4
+              break-words
+            "
+          >
             {project.description}
           </p>
 
           <div className="mb-5">
             <p className="text-sm font-semibold text-slate-600 mb-2">
-              🛠 Skills
+              Skills Required
             </p>
 
-            <p className="text-blue-600 font-medium">
+            <p
+              className="
+                text-blue-600
+                font-medium
+                line-clamp-2
+                break-words
+              "
+            >
               {project.skills}
             </p>
           </div>
         </div>
 
-        {/* Footer */}
         <div className="flex items-center justify-between border-t pt-4">
-          <div>
-            <p className="font-semibold text-slate-700">
-              👥 {project.members?.length || 1} Members
-            </p>
-          </div>
+          <p className="font-semibold text-slate-700">
+            👥 {project.members?.length || 1} Members
+          </p>
 
-          <button
+          <span
             className="
               bg-blue-600
-              hover:bg-blue-700
               text-white
-              px-5
+              px-4
               py-2
               rounded-xl
-              transition
             "
           >
             View Project
-          </button>
+          </span>
         </div>
       </div>
     </Link>

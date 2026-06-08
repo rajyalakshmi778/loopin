@@ -4,57 +4,76 @@ import { auth, db } from "../firebase/firebase";
 import {
   collection,
   getDocs,
-  query,
-  where,
   doc,
   updateDoc,
   getDoc,
-  arrayUnion,
+  addDoc,
 } from "firebase/firestore";
 
 function ProjectRequests() {
   const [requests, setRequests] = useState([]);
 
   useEffect(() => {
-    fetchRequests();
+    loadRequests();
   }, []);
 
-  const fetchRequests = async () => {
+  const loadRequests = async () => {
     try {
       const user = auth.currentUser;
-
       if (!user) return;
 
-      const q = query(
-        collection(db, "joinRequests"),
-        where("projectOwnerEmail", "==", user.email)
-      );
+      const snapshot = await getDocs(collection(db, "requests"));
 
-      const querySnapshot = await getDocs(q);
-
-      const requestList = querySnapshot.docs.map((doc) => ({
+      const data = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
 
-      setRequests(requestList);
+      const filtered = data.filter(
+        (r) => r.ownerId === user.uid
+      );
+
+      setRequests(filtered);
     } catch (error) {
       console.log(error);
     }
   };
 
-  const updateStatus = async (requestId, status, request) => {
+  const handleAction = async (
+    requestId,
+    status,
+    request
+  ) => {
     try {
-      const requestRef = doc(
-        db,
-        "joinRequests",
-        requestId
-      );
+      const user = auth.currentUser;
+
+      if (!user) return;
+
+      // Only project owner can act
+      if (request.ownerId !== user.uid) {
+        alert("Unauthorized action");
+        return;
+      }
+
+      // Prevent self-action
+      if (request.senderId === user.uid) {
+        alert("You cannot perform actions on yourself");
+        return;
+      }
+
+      // Prevent re-processing
+      if (request.status !== "pending") {
+        alert("Request already processed");
+        return;
+      }
+
+      const requestRef = doc(db, "requests", requestId);
 
       await updateDoc(requestRef, {
         status,
       });
 
+      // ACCEPT REQUEST
       if (status === "accepted") {
         const projectRef = doc(
           db,
@@ -65,17 +84,62 @@ function ProjectRequests() {
         const projectSnap = await getDoc(projectRef);
 
         if (projectSnap.exists()) {
-          await updateDoc(projectRef, {
-            members: arrayUnion(
-              request.requesterEmail
-            ),
-          });
+          const projectData = projectSnap.data();
+
+          const members =
+            projectData.members || [];
+
+          const alreadyMember =
+            members.includes(
+              request.senderEmail
+            );
+
+          if (!alreadyMember) {
+            await updateDoc(projectRef, {
+              members: [
+                ...members,
+                request.senderEmail,
+              ],
+            });
+          }
         }
+
+        await addDoc(
+          collection(db, "notifications"),
+          {
+            userId: request.senderId,
+            title: "Request Accepted",
+            message: `You joined ${request.projectTitle}`,
+            type: "success",
+            read: false,
+            createdAt: new Date(),
+          }
+        );
       }
 
-      fetchRequests();
+      // REJECT REQUEST
+      if (status === "rejected") {
+        await addDoc(
+          collection(db, "notifications"),
+          {
+            userId: request.senderId,
+            title: "Request Rejected",
+            message: `Your request for ${request.projectTitle} was rejected`,
+            type: "error",
+            read: false,
+            createdAt: new Date(),
+          }
+        );
+      }
+
+      alert(`Request ${status}`);
+
+      // Refresh UI
+      loadRequests();
+
     } catch (error) {
       console.log(error);
+      alert("Something went wrong");
     }
   };
 
@@ -83,42 +147,41 @@ function ProjectRequests() {
     <>
       <Navbar />
 
-      <div className="max-w-5xl mx-auto px-6 py-12">
-        <h1 className="text-4xl font-bold mb-8">
+      <div className="max-w-4xl mx-auto p-6">
+        <h1 className="text-3xl font-bold mb-6">
           Project Requests
         </h1>
 
         {requests.length === 0 ? (
-          <p>No requests found.</p>
+          <p>No requests found</p>
         ) : (
-          requests.map((request) => (
+          requests.map((r) => (
             <div
-              key={request.id}
-              className="border rounded-xl p-5 mb-4"
+              key={r.id}
+              className="p-4 border rounded-xl mb-3 flex justify-between items-center"
             >
-              <h2 className="text-xl font-semibold">
-                {request.projectTitle}
-              </h2>
+              <div>
+                <p className="font-semibold">
+                  {r.senderEmail}
+                </p>
 
-              <p className="mt-2">
-                Applicant: {request.requesterEmail}
-              </p>
+                <p className="text-sm text-gray-500">
+                  Project: {r.projectTitle}
+                </p>
 
-              <p className="mt-2">
-                Status:
-                <span className="font-bold ml-2">
-                  {request.status}
-                </span>
-              </p>
+                <p className="text-sm">
+                  Status: {r.status}
+                </p>
+              </div>
 
-              {request.status === "pending" && (
-                <div className="flex gap-3 mt-4">
+              {r.status === "pending" && (
+                <div className="flex gap-2">
                   <button
                     onClick={() =>
-                      updateStatus(
-                        request.id,
+                      handleAction(
+                        r.id,
                         "accepted",
-                        request
+                        r
                       )
                     }
                     className="bg-green-600 text-white px-4 py-2 rounded-lg"
@@ -128,10 +191,10 @@ function ProjectRequests() {
 
                   <button
                     onClick={() =>
-                      updateStatus(
-                        request.id,
+                      handleAction(
+                        r.id,
                         "rejected",
-                        request
+                        r
                       )
                     }
                     className="bg-red-600 text-white px-4 py-2 rounded-lg"

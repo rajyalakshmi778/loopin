@@ -1,19 +1,46 @@
+import { IoNotificationsOutline } from "react-icons/io5";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { auth } from "../firebase/firebase";
+import { auth, db } from "../firebase/firebase";
 import {
   onAuthStateChanged,
   signOut,
 } from "firebase/auth";
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 
 function Navbar() {
   const [user, setUser] = useState(null);
+  const [notificationCount, setNotificationCount] =
+    useState(0);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(
       auth,
-      (currentUser) => {
+      async (currentUser) => {
         setUser(currentUser);
+
+        if (!currentUser) {
+          setNotificationCount(0);
+          return;
+        }
+
+        try {
+          const q = query(
+            collection(db, "notifications"),
+            where("userId", "==", currentUser.uid)
+          );
+
+          const snapshot = await getDocs(q);
+
+          setNotificationCount(snapshot.size);
+        } catch (error) {
+          console.log(error);
+        }
       }
     );
 
@@ -41,7 +68,11 @@ function Navbar() {
 
         {/* Navigation */}
         <div className="hidden md:flex items-center gap-8 text-base font-medium text-slate-700">
-          <Link to="/" className="hover:text-blue-600 transition">
+
+          <Link
+            to="/"
+            className="hover:text-blue-600 transition"
+          >
             Home
           </Link>
 
@@ -55,57 +86,57 @@ function Navbar() {
           {user && (
             <>
               <Link
+                to="/dashboard"
+                className="hover:text-blue-600 transition"
+              >
+                Dashboard
+              </Link>
+
+              <Link
+                to="/my-projects"
+                className="hover:text-blue-600 transition"
+              >
+                My Projects
+              </Link>
+
+              <Link
                 to="/create-project"
                 className="hover:text-blue-600 transition"
               >
                 Create Project
-              </Link>
-
-              <Link
-                to="/my-requests"
-                className="hover:text-blue-600 transition"
-              >
-                My Requests
-              </Link>
-
-              <Link
-                to="/project-requests"
-                className="hover:text-blue-600 transition"
-              >
-                Project Requests
               </Link>
             </>
           )}
         </div>
 
         {/* Right Side */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-5">
 
           {user ? (
             <>
               <Link
+                to="/notifications"
+                className="relative text-slate-700 hover:text-blue-600 transition"
+              >
+                <IoNotificationsOutline size={28} />
+
+                {notificationCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center">
+                    {notificationCount}
+                  </span>
+                )}
+              </Link>
+
+              <Link
                 to="/profile"
-                className="
-                  font-medium
-                  text-slate-700
-                  hover:text-blue-600
-                  transition
-                "
+                className="font-medium text-slate-700 hover:text-blue-600 transition"
               >
                 Profile
               </Link>
 
               <button
                 onClick={handleLogout}
-                className="
-                  bg-red-500
-                  hover:bg-red-600
-                  text-white
-                  px-5
-                  py-3
-                  rounded-xl
-                  transition
-                "
+                className="bg-red-500 hover:bg-red-600 text-white px-5 py-3 rounded-xl transition"
               >
                 Logout
               </button>
@@ -114,35 +145,19 @@ function Navbar() {
             <>
               <Link
                 to="/login"
-                className="
-                  font-medium
-                  text-slate-700
-                  hover:text-blue-600
-                  transition
-                "
+                className="font-medium text-slate-700 hover:text-blue-600 transition"
               >
                 Login
               </Link>
 
               <Link
                 to="/signup"
-                className="
-                  bg-blue-600
-                  hover:bg-blue-700
-                  text-white
-                  px-6
-                  py-3
-                  rounded-xl
-                  font-semibold
-                  shadow-md
-                  transition
-                "
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold shadow-md transition"
               >
                 Get Started
               </Link>
             </>
           )}
-
         </div>
 
       </div>

@@ -1,13 +1,52 @@
+
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../firebase/firebase";
 
 function Hero() {
+  const [projects, setProjects] = useState([]);
+  const [builders, setBuilders] = useState(0);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const snapshot = await getDocs(
+          collection(db, "projects")
+        );
+
+        const projectData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        setProjects(projectData);
+
+        const membersSet = new Set();
+
+        projectData.forEach((project) => {
+          project.members?.forEach((member) => {
+            membersSet.add(member);
+          });
+        });
+
+        setBuilders(membersSet.size);
+
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    loadData();
+  }, []);
+
   return (
     <section className="bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="max-w-7xl mx-auto px-6 py-28">
 
         <div className="grid md:grid-cols-2 gap-16 items-center">
 
-          {/* Left Side */}
+          {/* LEFT */}
           <div>
             <p className="inline-block bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-semibold mb-6">
               🚀 Collaboration Platform
@@ -40,11 +79,14 @@ function Hero() {
               </Link>
             </div>
 
+            {/* LIVE STATS */}
             <div className="flex gap-10 mt-12">
+
               <div>
                 <h3 className="text-3xl font-bold text-gray-900">
-                  500+
+                  {projects.length}
                 </h3>
+
                 <p className="text-gray-500">
                   Projects
                 </p>
@@ -52,8 +94,9 @@ function Hero() {
 
               <div>
                 <h3 className="text-3xl font-bold text-gray-900">
-                  1K+
+                  {builders}
                 </h3>
+
                 <p className="text-gray-500">
                   Builders
                 </p>
@@ -61,77 +104,62 @@ function Hero() {
 
               <div>
                 <h3 className="text-3xl font-bold text-gray-900">
-                  250+
+                  {projects.length}
                 </h3>
+
                 <p className="text-gray-500">
                   Teams
                 </p>
               </div>
+
             </div>
           </div>
 
-          {/* Right Side */}
+          {/* RIGHT */}
           <div className="space-y-5">
 
-            <div className="bg-white p-6 rounded-3xl shadow-lg border">
-              <h3 className="text-xl font-bold">
-                AI Startup Platform
-              </h3>
+            {projects.length === 0 ? (
 
-              <p className="text-gray-500 mt-2">
-                Looking for React & AI Engineers
-              </p>
+              <div className="bg-white p-8 rounded-3xl shadow-lg border text-center">
+                <h3 className="text-xl font-bold mb-2">
+                  No Projects Yet
+                </h3>
 
-              <div className="mt-4 flex justify-between">
-                <span className="text-blue-600 font-semibold">
-                  4 Members
-                </span>
-
-                <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
-                  Active
-                </span>
+                <p className="text-gray-500">
+                  Create the first project on Loopin.
+                </p>
               </div>
-            </div>
 
-            <div className="bg-white p-6 rounded-3xl shadow-lg border ml-10">
-              <h3 className="text-xl font-bold">
-                Hackathon Team
-              </h3>
+            ) : (
 
-              <p className="text-gray-500 mt-2">
-                Need UI/UX Designer
-              </p>
+              projects.slice(0, 3).map((project) => (
+                <div
+                  key={project.id}
+                  className="bg-white p-6 rounded-3xl shadow-lg border"
+                >
+                  <h3 className="text-xl font-bold">
+                    {project.title}
+                  </h3>
 
-              <div className="mt-4 flex justify-between">
-                <span className="text-blue-600 font-semibold">
-                  3 Members
-                </span>
+                  <p className="text-gray-500 mt-2">
+                    {project.description}
+                  </p>
 
-                <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm">
-                  Recruiting
-                </span>
-              </div>
-            </div>
+                  <div className="mt-4 flex justify-between">
 
-            <div className="bg-white p-6 rounded-3xl shadow-lg border">
-              <h3 className="text-xl font-bold">
-                SaaS Analytics Tool
-              </h3>
+                    <span className="text-blue-600 font-semibold">
+                      {project.members?.length || 0} Members
+                    </span>
 
-              <p className="text-gray-500 mt-2">
-                Looking for Data Analysts
-              </p>
+                    <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+                      Active
+                    </span>
 
-              <div className="mt-4 flex justify-between">
-                <span className="text-blue-600 font-semibold">
-                  5 Members
-                </span>
+                  </div>
+                </div>
+              ))
 
-                <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm">
-                  Growing
-                </span>
-              </div>
-            </div>
+            )}
 
           </div>
 
