@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase/firebase";
 import Navbar from "../components/Navbar";
@@ -7,20 +8,19 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const navigate = useNavigate();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const userCredential =
-        await signInWithEmailAndPassword(
-          auth,
-          email,
-          password
-        );
+      await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
 
-      alert("Login successful!");
-
-      console.log(userCredential.user);
+      navigate("/");
     } catch (error) {
       alert(error.message);
     }

@@ -4,7 +4,8 @@ import Signup from "./pages/Signup";
 import Home from "./pages/Home";
 import Discover from "./pages/Discover";
 import ProjectDetails from "./pages/ProjectDetails";
-
+import Profile from "./pages/Profile";
+import CreateProject from "./pages/CreateProject";
 function App() {
   return (
     <BrowserRouter>
@@ -15,6 +16,11 @@ function App() {
         <Route path="/project/:id" element={<ProjectDetails />} />
         <Route path="/login" element={<Login />} />
 <Route path="/signup" element={<Signup />} />
+<Route path="/profile" element={<Profile />} />
+<Route
+  path="/create-project"
+  element={<CreateProject />}
+/>
       </Routes>
     </BrowserRouter>
   );

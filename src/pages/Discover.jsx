@@ -1,15 +1,38 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import ProjectCard from "../components/ProjectCard";
-import projects from "../data/projects";
+import { db } from "../firebase/firebase";
+import { collection, getDocs } from "firebase/firestore";
 
 function Discover() {
+  const [projects, setProjects] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
 
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const querySnapshot = await getDocs(
+          collection(db, "projects")
+        );
+
+        const projectList = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        setProjects(projectList);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchProjects();
+  }, []);
+
   const filteredProjects = projects.filter((project) => {
     const matchesSearch = project.title
-      .toLowerCase()
+      ?.toLowerCase()
       .includes(search.toLowerCase());
 
     const matchesCategory =
@@ -76,20 +99,18 @@ function Discover() {
           >
             Startup
           </button>
-          <p className="mb-4 font-semibold">
-  Selected Category: {selectedCategory}
-</p>
         </div>
+
+        <p className="mb-4 font-semibold">
+          Selected Category: {selectedCategory}
+        </p>
 
         <div className="grid md:grid-cols-3 gap-6">
           {filteredProjects.map((project) => (
             <ProjectCard
-  key={project.id}
-  id={project.id}
-  title={project.title}
-  role={project.role}
-  members={project.members}
-/>
+              key={project.id}
+              project={project}
+            />
           ))}
         </div>
       </div>

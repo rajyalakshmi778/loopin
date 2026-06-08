@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 
-function ProjectCard({ id, title, role, members }) {
+function ProjectCard({ project }) {
   return (
-    <Link to={`/project/${id}`}>
+    <Link to={`/project/${project.id}`}>
       <div
         className="
           bg-white
@@ -19,25 +19,34 @@ function ProjectCard({ id, title, role, members }) {
         "
       >
         <h3 className="text-xl font-bold mb-2">
-          {title}
+          {project.title}
         </h3>
 
-        <p className="text-gray-500">
-          {role}
+        <p className="text-gray-600 mb-3">
+          {project.description}
         </p>
 
-        <div className="flex gap-2 mt-4">
-          <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-lg text-sm">
-            React
-          </span>
+        <span
+          className="
+            inline-block
+            bg-blue-100
+            text-blue-700
+            px-3
+            py-1
+            rounded-lg
+            text-sm
+            mb-3
+          "
+        >
+          {project.category}
+        </span>
 
-          <span className="bg-green-100 text-green-700 px-2 py-1 rounded-lg text-sm">
-            Firebase
-          </span>
-        </div>
+        <p className="text-sm text-gray-500">
+          Skills Required:
+        </p>
 
-        <p className="text-blue-600 mt-4 font-medium">
-          {members} Members
+        <p className="text-blue-600 font-medium">
+          {project.skills}
         </p>
 
         <button
@@ -52,7 +61,7 @@ function ProjectCard({ id, title, role, members }) {
             transition
           "
         >
-          Join
+          View Project
         </button>
       </div>
     </Link>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase/firebase";
 import Navbar from "../components/Navbar";
@@ -9,20 +9,20 @@ function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const navigate = useNavigate();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const userCredential =
-        await createUserWithEmailAndPassword(
-          auth,
-          email,
-          password
-        );
+      await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
 
-      alert("Account created successfully!");
-
-      console.log("User:", userCredential.user);
+    
+      navigate("/");
     } catch (error) {
       alert(error.message);
     }
